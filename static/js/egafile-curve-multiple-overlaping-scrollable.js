@@ -1,0 +1,278 @@
+window.ega_curve_mos = function (el, data, opts) {
+  const margin = { top: 50, right: 20, bottom: 70, left: 50 };
+  const chartContainer = document.querySelector(el).closest(".chart-container");
+const svgContainer = document.querySelector(el).closest(".svg-container");
+  function getActiveChartValue(container){
+    const checkedArray = container.querySelector("input[type='radio']:checked");
+    return checkedArray.value;
+  }
+  function getSVGDimensions(){
+    let width = opts.width || 680;
+    let height = opts.height || 253;
+    if(opts.width ==="auto"){
+      const activeChart = chartContainer.querySelector(
+        `section.wide[value="${getActiveChartValue(chartContainer)}"]`
+      );
+      const svgContainerDimensions = activeChart.getBoundingClientRect();
+      width = svgContainerDimensions.width;
+      height = 488;
+    }
+    return [width,height]
+  }
+  function getSeparators(){    
+    const arr = [];
+    let current = null;
+    let labelsArray = [];
+    for (const dataPoint of data) {
+      if(!current || !labelsArray.includes(dataPoint[0])){
+        current = dataPoint;
+        labelsArray.push(dataPoint[0])
+        arr.push(dataPoint);
+      }
+    }
+    return arr;
+  }
+  function expandScaleDomain(scale,amount){
+    const newDomain = scale.domain();
+    if(typeof amount === 'string' && amount.endsWith("px")){
+      const amount_px = Number(amount.replace("px",""));
+      const amount_domain = scale.invert(amount_px);
+      newDomain[1]+=amount_domain;
+    }else{
+      const ticks = scale.ticks();
+      const scaleStep = ticks[1] - ticks[0];
+      newDomain[1]+=amount*scaleStep;
+    }
+    scale.domain(newDomain);
+  }
+  function buildChart(){
+    const [width,height] = getSVGDimensions();
+
+    // Declare separators
+    const separators = getSeparators();
+
+    if(opts.scrollRatio === "auto") opts.scrollRatio = separators.length/4;
+    const totalWidth = width * opts.scrollRatio;    
+    
+   // Declare the x (horizontal position) scale.
+	  const x = d3.scaleLinear(d3.extent(data, d => d[1]), [margin.left, totalWidth - margin.right]);
+    
+    // Declare the y (vertical position) scale.
+    const y = d3.scaleLinear([0, d3.max(data, d => d[2])], [height - margin.bottom, margin.top]).nice();
+
+    
+    //expand scale domain (making extra space in the graph)
+    if(opts.expandX) expandScaleDomain(x,opts.expandX)
+    if(opts.expandY) expandScaleDomain(y,opts.expandY)
+    
+    // Declare the line generator.
+    const line = d3.line()
+    .x(d => x(d[1]))
+    .y(d => y(d[2]));
+
+   // Create a div that holds two svg elements: one for the main chart and horizontal axis,
+    // which moves as the user scrolls the content; the other for the vertical axis (which 
+    // doesn’t scroll).
+    const parent = d3.select(document.querySelector(el).closest(".svg-container"));
+    d3.select(el)
+    .attr("width", width)
+    .attr("height", height)
+    // .style("position", "absolute")
+    .style("pointer-events", "none")
+    .style("z-index", 1)
+    .append("g")
+    .attr("transform", `translate(${margin.left},0)`)
+    .attr("class", "axis y-axis")
+    .call(d3.axisLeft(y).ticks(10, d3.format('~s')))
+    // .call(g => g.select(".domain").remove())
+    .call(g => g.selectAll(".tick line").clone()
+    .attr("x2", width - margin.left - 1.5*margin.right)
+    .attr("stroke-opacity", 0.1))
+    .call(g => g.select(".tick:last-of-type text").clone()
+    .attr("x", 3)
+    .attr("text-anchor", "start")
+    .attr("font-weight", "bold"))
+   // Create a scrolling div containing the area shape and the horizontal axis. 
+    const body = parent.append("div")
+    .style("overflow-x", "scroll")
+    .style("-webkit-overflow-scrolling", "touch")
+    const svg = body.append("svg")
+    .attr("width", totalWidth)
+    .attr("height", height)
+    .style("display", "block");
+    svg.append("g")
+      .attr("transform", `translate(0,${height - margin.bottom})`)
+      .attr("class", "axis x-axis")
+      .call(d3.axisBottom(x).ticks(10 * opts.scrollRatio,d3.format('~s')).tickSizeOuter(0))
+      .call(g => g.selectAll(".tick line").clone()
+      .attr("y2", -(height - margin.top - margin.bottom))
+      .attr("stroke-opacity", 0.1));
+    // Append a path for the line.
+    svg.append("path")
+      .attr("class", "plot")
+      .attr('d', line(data));
+
+     // x-axis name
+     if(opts.xAxis !== undefined){
+      d3.select(el).append("text")
+          .attr("class", 'x-axis-name')
+          .attr("x", width/2 - 8)
+          .attr("y", height - (margin.bottom/4))
+          .attr("text-anchor", "middle")
+          .text(opts.xAxis);
+    }  
+    // y-axis name
+    if(opts.yAxis !== undefined ){
+      d3.select(el).append("text")
+          .attr("class", 'y-axis-name')
+          .attr("x", -height/2)
+          .attr("y", margin.left/4 - 7)
+          .attr("dy", "0.35em")
+          .attr("text-anchor", "middle")
+          .attr("transform", "rotate(-90)")
+          .text(opts.yAxis);
+    }
+    //title
+    if(opts.showTitle && opts.title !== undefined){
+      d3.select(el).append("text")
+          .attr("class", 'title')
+          .attr("x", width/2 - 8)
+          .attr("y", (margin.top/3))
+          .attr("text-anchor", "middle")
+          .text(opts.title);
+    }
+    const separatorGroup = svg.append("g").attr("class", "separators");
+    // Append separators
+    separatorGroup.selectAll(".separator-line") //selects the existent separators
+    .data(separators.filter((d,i)=>i>0)) //binds them to data
+    .enter() //selects the other needed elements (the one data requires but are not in the previous selection)
+    .append("line") //creates a line for each element
+    .attr("class", "separator-line")
+    .attr("x1", d => x(d[1])) // x position
+    .attr("x2", d => x(d[1]))
+    .attr("y1", margin.top) // Start of the vertical line
+    .attr("y2", height-margin.bottom) // End of the vertical line
+    .attr("stroke", "black")
+    .attr("stroke-dasharray", "4,4"); // Optional dashed line
+    // Append labels
+    separatorGroup.selectAll(".separator-label")
+    .data(separators)
+    .enter()
+    .append("text")
+    .attr("class", "separator-label")
+    .attr("x", d => x(d[1]) + 7) // Apply xScale and small offset
+    .attr("y", (height+margin.top-margin.bottom)/2) // Position label above the line
+    .attr("dy", "0.35em")
+    .text(d => d[0])
+    .attr("font-size", "12px")
+    .attr("fill", "black");
+
+    // Create the tooltip container.
+    const tooltip = svg.append("g");
+    // Add the event listeners that show or hide the tooltip.
+    const formatX = d3.format('~s')
+    const bisect = d3.bisector(d => d[1]).center;
+
+    if(opts.showTooltip){
+      svg
+      .on("pointerenter pointermove", pointermoved)
+      .on("pointerleave", pointerleft)
+      .on("touchstart", event => event.preventDefault());
+    }
+
+    function pointermoved(event) {
+      const i = bisect(data, x.invert(d3.pointer(event)[0]));
+      const cx = x(data[i][1]);
+      const cy = y(data[i][2]);
+      tooltip.style("display", null);
+      tooltip.attr("transform", `translate(${cx},${cy})`);
+
+      const path = tooltip.selectAll("path")
+        .data([,])
+        .join("path")
+          .attr("stroke", "black")
+          .attr("class","graph-tooltip")
+
+      const text = tooltip.selectAll("text")
+        .data([,])
+        .join("text")
+        .call(text => text
+          .selectAll("tspan")
+          .data([opts.title.toLowerCase(),`${formatX(data[i][1])}: ${data[i][2]}`])
+          .join("tspan")
+            .attr("x", 0)
+            .attr("y", (_, i) => `${i * 1.1}em`)
+            .attr("font-weight", (_, i) => i ? null : "bold")
+            .text(d => d));
+
+      // Measure text and decide if it needs to flip
+      const { width: w } = text.node().getBBox();
+      const padding = 20;
+      const flipped = (cx + w + padding + 20 - body.node().scrollLeft) > body.node().getBoundingClientRect().width;    
+
+      size(text, path, flipped);
+    }
+
+    function pointerleft() {
+      tooltip.style("display", "none");
+    }
+
+    // Wraps the text with a callout path of the correct size, as measured in the page.
+    function size(text, path, flipped = false) {
+      const { x, y, width: w, height: h } = text.node().getBBox();
+      const paddingX = 15;
+      const offsetY = 12;
+      if (flipped) {
+        text.attr("transform", `translate(${-w - paddingX},${offsetY - h / 2})`);
+        path.attr("d", `M${-5},${-h / 2 - 3} V-5 L0,0 L-5,5 V${h / 2 + 3} H${-w - 2 * paddingX} V${-h / 2 - 3} Z`);
+      } else {
+        text.attr("transform", `translate(${paddingX - x},${offsetY - h / 2})`);
+        path.attr("d", `M5,${-h / 2 - 3} V-5 L0,0 L5,5 V${h / 2 + 3} H${w + 2 * paddingX} V${-h / 2 - 3} Z`);
+      }
+    }
+
+  }
+  function debounce(cb, delay = 1000) {
+   let timeout;
+   return (...args) => {
+     clearTimeout(timeout);
+     timeout = setTimeout(() => cb(...args), delay);
+   };
+  }
+  
+
+  let chartSize = 0;
+  let loading = false;
+  const svg = d3.select(el).node();
+
+  const resizeObserver = new ResizeObserver(([entry]) => {
+  if (!entry.borderBoxSize) return;
+
+  const newSize = entry.borderBoxSize[0].inlineSize;
+  if (newSize === chartSize) return;
+
+  if (!loading) {
+    // Enter loading state immediately
+    const scrollDiv = svgContainer.querySelector("div");
+    svgContainer.classList.add("loading");
+    svg.innerHTML = "";
+    scrollDiv?.remove();
+    loading = true;
+    // console.log("adding loader...");
+  }
+
+  // Update chart size and rebuild after debounce delay
+  debouncedBuildChart(newSize);
+  });
+
+  const debouncedBuildChart = debounce((newSize) => {
+    chartSize = newSize;
+    svgContainer.classList.remove("loading");
+    loading = false;
+    // console.log("building chart...");
+    buildChart();
+  }, 50);
+  
+  resizeObserver.observe(chartContainer);
+}
+  

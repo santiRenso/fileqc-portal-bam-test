@@ -1,0 +1,87 @@
+ul#info {
+
+    list-style: none; padding:0;
+
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(4, 1fr);
+    grid-column-gap: 1em;
+
+    li {
+	border-bottom: 1px solid #e6e6e6; 
+	margin:0;
+	padding-left:180px;
+	position:relative;
+	line-height:2rem; min-height:2rem;
+	z-index: 1;
+
+	&:before {
+	    content: attr(data-title);
+	    display: block;
+	    position: absolute; top:0; left:0;
+	    width:180px;
+	    font-weight:bold;
+	    line-height:2rem; min-height:2rem;
+	}
+    }
+
+    li[data-title="Publications"],li[data-title="DACs"],li[data-title="Datasets"],li[data-title="Studies"] {
+	&:before {
+	    padding-left:2em; padding-right:10px;
+	    width:calc(180px - 2em - 10px);
+	}
+	&:after {
+	    font-family: "Font Awesome\ 5 Free";
+	    font-weight: 900;
+	    -webkit-font-smoothing: antialiased;
+	    display: inline-block;
+	    font-style: normal;
+	    font-size: 90%;
+	    text-rendering: auto;
+	    line-height: 2;
+	    position: absolute; top:10%; left:0;
+	    height:80%; width:1.7em; text-align:center;
+	    color:white; background-color:#e99667; border-radius:50%;
+	}
+   
+	.more-trigger {
+	    cursor:pointer;
+	    position:absolute; top:0.6rem; right:0;
+	    z-index:10;
+	    font-size:0.8em;
+	    transition: .3s ease-out;
+	}
+	&.open .more-trigger { transform:rotate(45deg); top:1.6rem; right:-8px; z-index:30; }
+
+	div {
+	    display:none;
+	    padding:0 10px;
+	    position:absolute; top:2rem; left:170px;
+	    width:calc(100% - 190px);
+	    z-index:5;
+	    background-color:white;
+	    box-shadow: 0 10px 5px 0px #c3c3c3;
+	    border: 1px solid #e6e6e6;
+	    border-top-color:white;
+	    max-height:8rem; overflow:auto;
+	    a { display:block; }
+	}
+	&.open div { display:block; z-index:20; }
+
+    }
+
+    li[data-title="Datasets"].open     { z-index: 40; }
+    li[data-title="Studies"].open      { z-index: 30; }
+    li[data-title="DACs"].open         { z-index: 20; }
+    li[data-title="Publications"].open { z-index: 10; }
+
+
+    li[data-title="Datasets"]:after { content: "\f00a"; }
+    li[data-title="Studies"]:after { content: "\f02d"; }
+    li[data-title="DACs"]:after { content: "\f0c0"; }
+    li[data-title="Publications"]:after { content: "\f46d"/* "\f558" */; }
+
+}
+
+
+

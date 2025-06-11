@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      .thumbnail {
+          text-decoration:none;
+	  color:black;
+	  font-weight:bold;
+      }
+      .thumbnail span {  /*CSS for enlarged image*/
+           visibility: hidden;
+           position: absolute;
+           padding: 5px;
+      }
+      .thumbnail:hover span {  /*CSS for enlarged image on hover*/
+           visibility: visible;
+           left: 700px;
+           top: 130px;
+      }
+      .imgs td {
+           vertical-align:middle;
+           padding: 0.5em;
+           border: 1px solid black;
+      }
+      table.imgs {
+           border-collapse:collapse;
+           margin:100px 20px 0px 0px;
+      }
+      .pad { padding-left:1em; vertical-align:top; }
+      .right { text-align:right; padding-left:1em; }
+    </style>
+  </head>
+  <body>
+    <table class="imgs">
+      <tr>
+        <td>
+	  <a class="thumbnail" href="tstv_by_qual.0.png">
+	    <img src="tstv_by_qual.0.png" width="250px" />
+	    <span>Ts/Tv stratified by quality<br /><img src="tstv_by_qual.0.png" /></span>
+	  </a>
+	</td>
+        <td>
+	  <a class="thumbnail" href="indels.0.png">
+	    <img src="indels.0.png" width="250px" />
+	    <span>Indel distribution<br /><img src="indels.0.png" /></span>
+	  </a>
+	</td>
+      </tr>
+      <tr>
+        <td>
+	  <a class="thumbnail" href="depth.0.png">
+	    <img src="depth.0.png" width="250px" />
+	    <span>Depth distribution<br /><img src="depth.0.png" /></span>
+	  </a>
+	</td>
+        <td>
+	  <a class="thumbnail" href="substitutions.0.png">
+	    <img src="substitutions.0.png" width="250px" />
+	    <span>Substitution types<br /><img src="substitutions.0.png" /></span>
+	  </a>
+	</td>
+      </tr>
+    </table>
+  </body>
+</html>

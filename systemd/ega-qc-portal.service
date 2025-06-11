@@ -1,0 +1,39 @@
+[Unit]
+Description="EGA File QC Portal"
+After=network.target ega-qc-portal.socket
+Requires=ega-qc-portal.socket
+ConditionPathExists=/etc/ega/qc/settings.conf
+
+[Service]
+Type=notify
+User=nginx
+Group=nginx
+Slice=ega-qc-portal.slice
+
+Environment=LANG=en_US.UTF-8,LC_ALL=en_US.UTF-8
+
+WorkingDirectory=/opt/qc-portal
+EnvironmentFile=/etc/ega/qc/settings.conf
+ExecStart=/usr/local/bin/python -m code
+ExecReload=/bin/kill -SIGINT $MAINPID
+
+StandardOutput=journal+console
+StandardError=journal+console
+SyslogIdentifier=ega-qc-portal
+SyslogFacility=local2
+
+
+# $HOME is read only ..
+ProtectHome=read-only
+
+# /tmp is isolated from all other processes
+PrivateTmp=true
+
+# Minimal /dev, no physical device access
+PrivateDevices=true
+
+# Don't allow process to raise privileges (e.g. disable suid)
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

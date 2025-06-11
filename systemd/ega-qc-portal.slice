@@ -1,0 +1,16 @@
+[Unit]
+Description=EGA File QC Slice
+Before=slices.target
+
+[Slice]
+MemoryAccounting=true
+IOAccounting=true
+CPUAccounting=true
+
+CPUWeight=10
+IOWeight=10
+
+MemoryHigh=4%
+MemoryLimit=5%
+CPUShares=10
+BlockIOWeight=10

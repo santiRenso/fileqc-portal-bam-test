@@ -1,0 +1,18 @@
+[Unit]
+Description="EGA File QC socket"
+PartOf=ega-qc-portal.service
+
+[Socket]
+ListenStream=/run/ega/ega-qc-portal.sock
+Slice=ega-qc-portal.slice
+
+BindToDevice=eth0
+SocketUser=nginx
+SocketGroup=nginx
+
+DirectoryMode=0700
+SocketMode=0600
+
+
+[Install]
+WantedBy=sockets.target

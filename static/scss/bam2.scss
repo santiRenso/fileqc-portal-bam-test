@@ -1,0 +1,106 @@
+@import "variables";
+@import "graphs";
+
+.chart-container{
+    margin: 0;
+    width: auto;
+	gap: 0.5em;
+	
+	&.bam{
+		.tabs{
+			display: flex;
+			font-size: 12px;
+  			line-height: 1.5;
+  			border-radius: 3px;
+			border: 1px solid #adadad;
+			label{
+				padding: 5px 10px 5px 8px;
+				margin: 0;
+				cursor: pointer;
+				font-weight: 400;
+				text-transform: capitalize;
+				&:hover{
+					background-color: #e6e6e6;
+				}
+			}
+		}
+		input[type='radio'][name$='scroll']{
+			appearance: none;
+			display: none;
+		}
+		section[value='scroll-on'],section[value='scroll-off']{
+			display: none;
+		}
+		input[type='radio'][name$='scroll'][value='scroll-on']:checked ~ .tabs label[for$='scroll-on']{
+			background-color: #d4d4d4;
+			box-shadow: inset 0 3px 5px rgba(0,0,0,.125);
+		}
+		input[type='radio'][name$='scroll'][value='scroll-off']:checked ~ .tabs label[for$='scroll-off']{
+			background-color: #d4d4d4;
+			box-shadow: inset 0 3px 5px rgba(0,0,0,.125);
+		}
+		input[type='radio'][name$='scroll'][value='scroll-on']:checked ~ section[value='scroll-on']{
+			display: block;
+		}
+		input[type='radio'][name$='scroll'][value='scroll-off']:checked ~ section[value='scroll-off']{
+			display: block;
+		}
+		svg{
+			// .domain{
+			// 	stroke: #333;
+			// }
+			.x-axis-name,.y-axis-name{
+				font-size: 1em;
+				font-variant: normal;
+				fill: #b1b1b1;
+			}
+			.y-axis{
+				.tick line:first-of-type{
+					display: none;
+				}
+			}
+			.title{
+				text-transform: capitalize;
+				font-size: 1.5em;
+				color: #444;
+			}
+		}
+		path{
+			&.plot{
+				stroke:rgb(124, 181, 236);
+			}
+			&.graph-tooltip{
+				fill:hsl(209, 75%, 76%);
+			}
+		}
+	}
+    .svg-container{
+		position: relative;
+		svg{
+			max-width: none;
+			background-color:transparent;
+		}
+		i{
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%,-50%);
+			font-size: 3em;
+			display: none;
+			color: $gray;
+		}
+		&.loading{
+			i{
+				display: inline;
+			}
+		}
+		&.scrollable{
+			> svg{
+				position: absolute;
+			}
+			&.loading > svg{
+				position: relative;
+			}
+		}
+	}
+}

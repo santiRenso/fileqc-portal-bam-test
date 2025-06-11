@@ -1,0 +1,316 @@
+html{
+  height: 100%;
+}
+
+body{
+  min-height: 100%;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+
+  width:1140px;
+  margin:0 auto;
+
+
+  font-family: "Roboto", "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  color: #636363;
+  line-height:1.4;
+}
+
+header {
+  margin-top:1rem;
+
+  display:flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  justify-content: flex-start;
+
+  a {display:block;}
+  img { width:180px; display:block; margin-right:2rem; }
+
+  h1#title { color:#1b5276; }
+
+  &:nth-of-type(2) {
+      background-color:#f8f8f8;
+      color: #e99667;
+  }
+
+  h1#info-title {
+
+      margin: 0;
+      padding: 0;
+    
+      small {
+	  color:black;
+	  font-size:70%;
+	  margin-left:1em;
+	  display:inline-block;
+	  color:#1b5276;
+      }
+  }
+
+  nav#info-nav {
+
+    display: flex;
+    margin-left: auto;
+
+    > span { margin-right:0.5ex; }
+    > a + a { margin-left:0.5ex; }
+    /* > a + a:before { content: '/'; margin:0 0.5ex; text-decoration:none; color: inherit; } */
+  }
+}
+
+main {
+    margin-bottom:1rem;
+
+    h1 {
+	background-color:#f8f8f8;
+	color: #e99667;
+	padding-left:0.5ex;
+  &.sample-table{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 0.5ex;
+    img{
+      width: 0.55em;
+    }
+  }
+    }
+    .sample-table-link{
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      font-weight: normal;
+      a:first-of-type{
+        color: inherit;
+        text-decoration: underline;
+      }
+      img{
+        width: 0.7em;
+      }
+    }
+    p#inspired-by {
+	text-align:center;
+    }
+}
+
+footer {
+    margin-top:auto;
+
+    background-color: $footer-bg;
+
+    padding:1rem;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+
+    a {
+	display: inline-block;
+	text-decoration:none;
+	&:hover { text-decoration:underline; }
+    }
+
+
+
+    p { margin:0 0 1rem 0; padding:0; }
+
+    p#funded-by { 
+		  display:flex; flex-flow:row nowrap; align-items:center;
+		  img { height: 60px; margin-left:1ex; }
+		}
+    #plots-info{
+      width: 33em;
+    }
+
+}
+
+
+.alert { padding: 0.3rem 1rem; margin: 0.5rem 0; border: 1px solid transparent; border-radius: 0.5rem; }
+.alert-success { color: $alert-success-text; background-color: $alert-success-bg; border-color: $alert-success-border; }
+.alert-info    { color: $alert-info-text;    background-color: $alert-info-bg;    border-color: $alert-info-border;    }
+.alert-warning { color: $alert-warning-text; background-color: $alert-warning-bg; border-color: $alert-warning-border; }
+.alert-danger  { color: $alert-danger-text;  background-color: $alert-danger-bg;  border-color: $alert-danger-border;  }
+
+span[data-tooltip]{
+  text-decoration: underline dotted 0.1em;
+}
+[data-tooltip]{
+  position: relative;
+  &:before{
+    content: attr(data-tooltip);
+    background: $mine-shaft;
+    color: $white;
+    // border: 1px solid $gray;
+    // box-shadow: rgba($black, 0.16) 0px 1px 4px;
+
+    /* horizontally center */
+    left:50%;
+    transform:translateX(-50%);
+    /* move to bottom */
+    top:80%;
+    margin-top:1em; /* and add a small top margin */
+
+    position: absolute;
+    z-index: 1;
+    padding: 1em;
+    text-wrap: wrap;
+    width: 24em;
+    border-radius: 0.75em;
+    
+    opacity: 0;
+    transition: opacity 0.3s;
+    visibility: hidden;
+  }
+  &:after{
+    content: "";
+    position:absolute;
+    z-index: 1;
+    
+
+    
+    /* horizontally center */
+    left:50%;
+    transform:translateX(-50%);
+    top:80%;
+    margin-top:-0.3em;
+   
+    /* the arrow */
+    border:0.75em solid $mine-shaft;
+    border-color: transparent transparent $mine-shaft transparent;
+    
+    opacity: 0;
+    transition: opacity 0.3s;
+    visibility: hidden;
+  }
+  &:hover{
+    &:before{
+     opacity: 1;
+     visibility: visible;
+    }
+    &:after{
+     opacity: 1;
+     visibility: visible;
+    }
+  }
+  &.align-right{
+    &:before{
+      right: -3em;
+      left: auto;
+      transform: none;
+    }
+  }
+}
+
+.btn-close {
+  margin: 0;
+  border: 0;
+  padding: 0;
+  background: darken($orange,10%);
+  border-radius: 50%;
+  transition: all 0.3s;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  .icon-cross {
+    @include cross(8px, #fff,2px);   
+  }
+  &:hover{
+    background: darken($orange,20%);
+  }
+
+}
+.btn-info{
+  margin: 0;
+  border: 0;
+  padding: 0;
+  background:hsl(0, 0%, 48%);
+  color: $white;
+  border-radius: 50%;
+  font-size: 0.9em;
+  width: 0.8rem;
+  height: 0.8rem;
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 150ms;
+  position: absolute;
+  top: 0;
+  right: 0;
+  &:hover,
+  &:focus {
+    background:hsl(0, 0%, 38%);
+  }
+}
+
+.popup{
+  width: 66.66%;
+  position: fixed;
+  width: 42em;
+  padding:1.5em;
+  top: 0;
+  left: 0;
+  z-index: 200;
+  border:none;
+  border-radius:5px;
+  &[open]{
+    opacity: 1;
+  }
+  &::backdrop {
+    background: $gray;
+    opacity: 0.5;
+  }
+  h2{
+    margin: 0;
+    padding: 0.5em;
+    // border-bottom:solid 0.1em $mercury;
+    color: $orange;
+    background: $lightgray;
+    font-size: 1.2em;
+  }
+  .body{
+    height: 10.5em;
+    overflow-y:auto;
+    @include custom-scrollbar;
+  }
+  p{
+    text-indent: 0.5em;
+    text-align: justify;
+    padding: 0 1em;
+  }
+  button[name='close']{
+		position:absolute; top:1ex; right:1ex;
+		z-index:100;
+    width: 16px;
+    height: 16px;
+  }
+  &-trigger{
+    margin: 0;
+    border: 0;
+    padding: 0;
+    background:hsl(0, 0%, 48%);
+    color: $white;
+    border-radius: 50%;
+    font-size: 0.9em;
+    width: 0.8rem;
+    height: 0.8rem;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 150ms;
+    position: absolute;
+    top: 0;
+    right: 0.5em;
+    &:hover,
+    &:focus {
+      background:hsl(0, 0%, 38%);
+    }
+  }
+}

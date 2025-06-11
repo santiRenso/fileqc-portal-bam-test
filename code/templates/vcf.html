@@ -1,0 +1,205 @@
+{% include 'code/templates/header.html' %}
+
+      <ul id="info" class="vcf" data-url='__EGA_MAIN_URL__/files/{{ stable_id }}'>
+        <!-- Content table -->
+        <li data-title="Inferred Assembly">{{ report.InferredAssembly }}</li>
+        <li data-title="Number of Records">{{ report.NbRecords|numberFormat(' ') }}</li>
+        <li data-title="Number of Samples">{{ report.NbSamples|numberFormat(' ') }}</li>
+        <li data-title="Multiallelic Sites">{{ report.MultiAlSites|numberFormat(' ') }}</li>
+        <li data-title="Multiallelic SNP sites">{{ report.MultiAlSNPSites|numberFormat(' ') }}</li>
+        <li data-title="VCF Version">{{ report.VCFVersion }}</li>
+        <li></li>
+        <li></li>
+
+	<!-- File info table -->
+      </ul>
+
+
+      <h1>File Data</h1>
+
+
+      <div id="data">
+
+        <section id="SFS" class="wide" data-ifmissing="Missing data">
+          <h2>Site Frequency Distribution </h2>
+          <span class="trigger"></span>
+          <div>
+            <p> 
+              Also called allele frequency spectrum, refers to the distribution of the allele 
+              frequencies of a set of loci (typically SNPs) in a population or sample. It is a 
+              histogram which depends on the number of samples used for its calculation and 
+              therefore, it is significant if a high number of samples are used. Sometimes, variant
+              callers use human databases of variants as a control to get an idea about the 
+              expected frequencies. A good plot should be similar to an exponential distribution 
+              like the one shown below:
+            </p>
+            <img src="{{ static('img/SFS.png') }}" alt="SFS" />
+          </div>
+          <svg></svg>
+        </section>
+
+        <section id="Variant-types" class="wide" data-ifmissing="Missing data">
+          <h2>Variant types</h2>
+          <span class="trigger"></span>
+          <div>
+            <p>
+              This plot shows which kind of variant types are present in the VCF file. SNPs are the
+              most common variant expected to be detected. The proportion among the different 
+              types (Ins for insertions and Del for deletions) may vary according to the kind of 
+              experiment performed, being more variant types in whole sequencing data than in 
+              exome data as big changes may be more deleterious. Other variant types may 
+              comprise when a combination of SNP and deletion occurs (i.e. Ref: ACGT → CCG).
+            </p>
+            <p>
+              The purpose of this plot is just informative as it allows to check if the VCF has 
+              been filtered and to detect which variants are not present in a first view.
+
+            </p>
+          </div>
+          <svg></svg>
+        </section>
+
+        <section id="TsTv" class="wide" data-ifmissing="Missing data">
+          <h2>Ts/Tv: <span class="tstv-ratio">{{ report.Data.TsTvRatio }}</span></h2>
+          <span class="trigger"></span>
+          <div>
+            <p>
+              Transversion is defined as a point mutation of the DNA sequence that makes a change 
+              of purine (Adenine & Guanine) to pyrimidine (Cytosine & Thymine) or vice versa. 
+              Pyrimidines are characterized in having a double ring while purines do have one.
+            </p>
+            <p>
+              Transition occurs when the mutation is between the same kind of bases (purine to 
+              purine or pyrimidine to pyrimidine). Transitions are less likely to turn in amino 
+              acid substitutions and may persist as “silent substitutions” as single nucleotide
+              polymorphisms (SNPs).
+            </p>
+            <p>
+              Transitions occur approximately 10 times more often than transversions as changing a
+              single structure is more likely than changing a double ring to a single ring. Also, 
+              it is important to notice that transversions usually have more effect than a 
+              transition as the third position of the amino acid code is more tolerant to 
+              transitions than transversions, i.e. transition may derive in the same amino acid.
+            </p> 
+            <p>
+              So, finally for Human DNA is expected to obtain a Ts/Tv ratio close to 2. If it is 
+              lower, it means a probable signal of data problems.
+            </p>
+          </div>
+          <svg></svg>
+        </section>
+
+        <section id="base-changes" class="wide">
+          <h2>Base Changes</h2>
+          <span class="trigger"></span>
+          <div>
+            <p>
+              As explained in the Ts/Tv Ratio info, transitions are 10 times more probable than 
+              transversions. That means it is more likely the Adenine to mutate into Guanine or vice 
+              versa than to mutate either a Cytosine (C) or Thymine (T). The plot should be similar 
+              to the following one:
+            </p>
+            <img src="{{ static('img/base-changes.png') }}" alt="SFS" />
+            <p>
+              A deviation of this model may indicate a problem with the variant calling, and probably 
+              the Ts/Tv ratio will be lower than 2.
+            </p>
+          </div>
+          <svg></svg>
+        </section>
+
+        <section id="Indel" class="wide" data-ifmissing="Missing data">
+          <h2>Indel Distribution</h2>
+          <span class="trigger"></span>
+          <div>
+            <p>
+              This plot allows checking the number of insertions and deletions according to length
+              observed in the VCF. Negative values represent deletions and positive values 
+              correspond to insertions. The x-axis shows the number of bases inserted/deleted and 
+              the y-axis corresponds to the number of variants observed having those amount of 
+              bases inserted/deleted. Usually, more deletions than insertions are observed, and the
+              length of the indels are generally very short (1-5 bases).
+            </p>
+          </div>
+          <svg></svg>
+        </section>
+
+        <section id="quality-dist" class="wide" data-ifmissing="Missing data">
+          <h2>Quality Distribution </h2>
+          <span class="trigger"></span>
+          <div>
+            <p>
+              Represents the phred-scaled quality score for the assertion made in ALT. It corresponds to 
+              the QUAL (6th column) in the vcf file. Higher it is the more confident we are.
+              Notice that this value can be not only platform biased but also variant calling 
+              tools may get different values so you should be aware of that. Here we mainly want to 
+              verify that the quality scores are not crowded into the low (< 100) end. Deviations may 
+              indicate problems within the analysis/experiment.
+            </p>
+          </div>
+          <svg></svg>
+        </section>
+      </div> 
+
+    </main>
+
+
+    <!-- Footer works fine -->
+    <footer>
+      <p id="copyright">
+        <strong>&copy; Copyright {{ year }}. EGA Consortium</strong>
+      </p>
+
+      <div id="plots-info">
+      <p id="inspired-by">Data extracted with <a href="https://samtools.github.io/bcftools/">bcftools</a> and <a href="https://vcftools.github.io/index.html">vcftools</a>.</p>
+      <p id="plots-by">
+        The stats plots are rendered using the <a href="https://github.com/samtools/bcftools/blob/develop/misc/plot-vcfstats">plot-vcfstats script</a>
+        according to the <a href="https://vcftools.github.io/htslib.html">vcftools reference manual</a>.</p>
+      </div>
+      <p id="funded-by">
+        Funded by <img src="{{ static('img/eu-flag.jpg') }}" alt="European Union" />
+      </p>
+    </footer>
+  </body>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script>window.jQuery || document.write('<script src="{{ static('js/jquery.min.js') }}">\x3C/script>')</script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <script>window.d3 || document.write('<script src="{{ static('js/d3.v5.min.js') }}">\x3C/script>')</script>
+  
+  <script src="{{ static('js/egafile-utils.js') }}"></script>
+  <script src="{{ static('js/egafile-basechanges.js') }}"></script>
+  <script src="{{ static('js/egafile-bars.js') }}"></script>
+  <script src="{{ static('js/egafile-curve.js') }}"></script>
+
+  <script src="{{ static('js/egafile-bars-specific.js') }}"></script>
+
+  <script>
+
+    // Plots
+    window.ega_base_changes("#base-changes svg",
+                            {{ report.Data.BaseChangeDist|safe }},
+                            { 'xAxis': 'Reference base',
+                              'yAxis': "# Observed Bases" });
+    window.ega_curve("#quality-dist svg",
+                            JSON.parse("{{ report.Data.QualityDist|escapejs }}"),
+                            { 'xAxis': 'Variant Quality Distribution',
+                              'yAxis': '# Variants'});     
+    window.ega_bars("#SFS svg",
+                          JSON.parse("{{ report.Data.SFS|escapejs }}"),
+                          { 'xAxis': 'Percentage of Alleles (only using SNPs) in the called population that exhibit the alterate allele',
+                            'yAxis': 'log10(frequency)'});
+    window.ega_bars("#Indel svg",
+                          JSON.parse("{{ report.Data.IndelDist|escapejs }}"),
+                          { 'xAxis': 'Indel Length Distribution',
+                            'yAxis': '# Found'});
+    window.ega_bars_specific("#Variant-types svg",
+                          JSON.parse("{{ report.Data.Variants|escapejs }}"),
+                          { 'xAxis': undefined,
+                            'yAxis': '# Variants'});
+    window.ega_bars_specific("#TsTv svg",
+                          JSON.parse("{{ report.Data.TsTv|escapejs }}"),
+                          { 'yAxis': '# Variants'});                                 
+      
+  </script>
+</html>

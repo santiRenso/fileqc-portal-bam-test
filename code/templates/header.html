@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1.0, width=device-width, shrink-to-fit=no"/>
+    <title>EGA File Quality: {{ stable_id }}</title>
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,100i,300,300i,400,400i,500,500i,700,700i,900,900i"
+	  rel="stylesheet">
+    <link rel="stylesheet" href="//necolas.github.io/normalize.css/latest/normalize.css">
+    <link rel="stylesheet" href="{{ static('css/style.css') }}">
+    <link rel="icon" href="/favicon.ico">
+
+    <script src="https://kit.fontawesome.com/9394affc27.js" crossorigin="anonymous"></script>
+  </head>
+  <body>
+    <dialog class="popup" name="ratio-het-hom">
+      <div class="popup-window">
+        <button autofocus type="button" class="btn-close" name="close">
+          <span class="icon-cross"></span>
+        </button>
+        <h2>HET/HOM: Het/Hom Ratio (Heterozygous/Homozygous Ratio)</h2>
+        <div class="body">
+          <p>The heterozygous/homozygous ratio is a commonly used metric to assess the balance of these genotypes within a sample. Expected het/hom ratios can vary based on sequencing type (WES: 1.5 - 2.0; WGS: 1.8 - 2.2) and population characteristics. Populations with higher inbreeding coefficients tend to have lower het/hom ratios due to reduced genetic diversity. Significant deviations from these expected values may indicate data quality issues. For instance, a significantly low het/hom ratio could suggest poor sequencing quality, or alignment problems, while a high ratio may point to contamination or the presence of polyploidy.</p>
+          <p>Missingness refers to the percentage of absent genotype calls for a sample at specific variant sites, typically denoted as `./.` in the genotype (GT) field. This occurs when reliable data is unavailable due to factors like low sequencing coverage, poor read quality, alignment issues, or stringent variant calling thresholds. A high number of missing genotypes in a particular sample can be indicative of poor sample quality, potentially caused by degraded DNA, insufficient sequencing depth, or technical artifacts during library preparation.</p>
+        </div>
+      </div>
+    </dialog>
+    <dialog class="popup" name="ratio-ts-tv">
+      <div class="popup-window">
+        <button autofocus type="button" class="btn-close" name="close">
+          <span class="icon-cross"></span>
+        </button>
+        <h2>Ts/Tv</h2>
+        <div class="body">
+          <p>Transversion is defined as a point mutation of the DNA sequence that makes a change of purine (Adenine & Guanine) to pyrimidine (Cytosine & Thymine) or vice versa. Pyrimidines are characterized in having a double ring while purines do have one.</p>
+          <p>Transition occurs when the mutation is between the same kind of bases (purine to purine or pyrimidine to pyrimidine). Transitions are less likely to turn in amino acid substitutions and may persist as “silent substitutions” as single nucleotide polymorphisms (SNPs).</p>
+          <p>Transitions occur approximately 10 times more often than transversions as changing a single structure is more likely than changing a double ring to a single ring. Also, it is important to notice that transversions usually have more effect than a transition as the third position of the amino acid code is more tolerant to transitions than transversions, i.e. transition may derive in the same amino acid.</p>
+          <p>So, Ts/Tv ratio far from the expected human range (WGS: ~2.0 - 2.1; WES: ~ 3.0 - 3.3) may indicate poor variant calling or sequencing errors, with an excess of transversions suggesting potential noise.</p>
+        </div>
+      </div>
+    </dialog>
+    <header>
+      <a href="__EGA_MAIN_URL__"><img src="/img/logo.png" alt="European Genome-Phenome Archive" /></a>
+      <h1 id="title">File QC report</h1>
+    </header>
+    <header>
+      <h1 id="info-title">File Information<small>{{ stable_id }}</small></h1>
+      <nav id="info-nav">
+	<span>{{ report_type }}</span>
+	{%- if header_text -%}<a href="header.txt">header</a>{% endif %}
+	{%- if stats_path -%}<a href="stats/">stats plots</a>{% endif %}
+      </nav>
+    </header>
+    <main>
+

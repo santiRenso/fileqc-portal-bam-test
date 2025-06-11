@@ -1,0 +1,97 @@
+<script src="https://kit.fontawesome.com/9394affc27.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="{{ static('css/bam2.css') }}">
+<h3>Median Coverage Across Reference</h3>
+<p>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Itaque voluptatibus, veritatis illum sequi obcaecati natus? Cupiditate doloribus, tenetur similique mollitia assumenda eum rerum beatae ab libero vero asperiores aliquid neque.</p>
+<div class="chart-container bam">
+    <input type="radio" name="coverage-intervals-scroll" value="scroll-on" id="coverage-intervals-scroll-on" checked>
+    <input type="radio" name="coverage-intervals-scroll" value="scroll-off" id="coverage-intervals-scroll-off">
+    <div class="tabs">
+      <label for="coverage-intervals-scroll-on">scrollable</label>
+      <label for="coverage-intervals-scroll-off">fit width</label>
+    </div>
+    <section value="scroll-off" id="coverage-intervals" class="wide" data-ifmissing="Missing data">
+      <div class="svg-container">
+        <svg></svg>
+      </div>
+    </section>
+    <section value="scroll-on" id="coverage-intervals-scroll" class="wide" data-ifmissing="Missing data">
+      <div class="svg-container scrollable">
+        <svg></svg>
+        <i class="fa-solid fa-spinner fa-spin"></i>
+      </div>
+    </section>
+</div>
+<h3>Median Mapping Quality Across Reference</h3>
+<p>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Quas rerum quia minima dolorem perferendis dolore ex eligendi culpa ea, neque commodi hic ut cumque sint minus? Provident debitis architecto minus!
+Esse, est veniam harum ipsum nobis minus error, repellendus, quidem sed vero nihil repudiandae! Dolor laboriosam, quod inventore est ad ut magni ullam consectetur nam veniam illum quis mollitia aliquid.</p>
+<div class="chart-container bam">
+    <input type="radio" name="median-intervals-scroll" value="scroll-on" id="median-intervals-scroll-on" checked>
+    <input type="radio" name="median-intervals-scroll" value="scroll-off" id="median-intervals-scroll-off">
+    <div class="tabs">
+      <label for="median-intervals-scroll-on">scrollable</label>
+      <label for="median-intervals-scroll-off">fit width</label>
+    </div>
+    <section value="scroll-off" id="median-intervals" class="wide" data-ifmissing="Missing data">
+      <div class="svg-container">
+        <svg></svg>
+        <i class="fa-solid fa-spinner fa-spin"></i>
+      </div>
+    </section>
+    <section value="scroll-on" id="median-intervals-scroll" class="wide" data-ifmissing="Missing data">
+      <div class="svg-container scrollable">
+        <svg></svg>
+        <i class="fa-solid fa-spinner fa-spin"></i>
+      </div>
+    </section>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="{{ static('js/egafile-curve-multiple-overlaping.js') }}"></script>
+<script src="{{ static('js/egafile-curve-multiple-overlaping-scrollable.js') }}"></script>
+<script>
+  window.ega_curve_mo("#coverage-intervals svg", 
+  JSON.parse("{{ coverage_intervals|escapejs }}".replace(/'/g, '"')),
+  {
+    xAxis: "Position (bp)",
+    yAxis: "Coverage (X)",
+    title: "Median Coverage Across Reference",
+    showTitle: false,
+    showTooltip: true,
+    width:"auto",
+  });
+
+  window.ega_curve_mos("#coverage-intervals-scroll svg", 
+  JSON.parse("{{ coverage_intervals|escapejs }}".replace(/'/g, '"')),{
+    xAxis: "Position (bp)",
+    yAxis: "Coverage (X)",
+    title: "Median Coverage Across Reference",
+    showTitle: false,
+    showTooltip: true,
+    width:"auto",
+    expandX:"70px",
+    scrollRatio: 10,
+  });
+  window.ega_curve_mo("#median-intervals svg", 
+  JSON.parse("{{ median_intervals|escapejs }}".replace(/'/g, '"')),
+  {
+    xAxis: "Position (bp)",
+    yAxis: "Mapping Quality",
+    title: "Median Mapping Quality Across Reference",
+    showTitle: false,
+    showTooltip: true,
+    width:"auto",
+    expandX:"70px",
+    expandY:4
+  });
+
+  window.ega_curve_mos("#median-intervals-scroll svg", 
+  JSON.parse("{{ median_intervals|escapejs }}".replace(/'/g, '"')),{
+     xAxis: "Position (bp)",
+    yAxis: "Mapping Quality",
+    title: "Median Mapping Quality Across Reference",
+      showTitle: false,
+    showTooltip: true,
+    width:"auto",
+    scrollRatio: "auto",
+    expandX:"70px",
+  });
+</script>

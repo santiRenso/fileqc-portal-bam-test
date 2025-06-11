@@ -1,0 +1,169 @@
+{% include 'code/templates/header.html' %}
+      <ul id="info" class="vcf" data-url='__EGA_MAIN_URL__/files/{{ stable_id }}'>
+        <!-- Content table -->
+        <li data-title="Inferred Assembly">{{ report.InferredAssembly }}</li>
+        <li data-title="Number of Variants">{{ report.NbRecords|numberFormat(' ') }}</li>
+        <li data-title="Number of Samples">{{ report.NbSamples|numberFormat(' ') }}</li>
+        <li data-title="Multiallelic Sites">{{ report.MultiAlSites|numberFormat(' ') }}</li>
+        <li data-title="Multiallelic SNP Sites">{{ report.MultiAlSNPSites|numberFormat(' ') }}</li>
+        <li data-title="VCF Version">{{ report.get("VCF Version") }}</li>
+        {% if report.AvgDepth %}
+        <li data-title="Average Depth">
+          {% if report.AvgDepth == "null" %}Non available data{% else %}{{ report.AvgDepth }}{% endif %}
+        </li>
+      {% endif %}
+        <li data-title="Average Quality">{{ report.AvgQuality }}</li>
+        <li data-title="Ts/Tv">{{ report.TsTvRatio }}</li>
+        <li></li>
+        <li></li>
+        <li></li>
+
+	<!-- File info table -->
+      </ul>
+
+
+      <h1>File Data</h1>
+
+
+      <div id="data">
+        {% if report.NbSamples > 50 %}
+          <section id="SFS" class="wide" data-ifmissing="Missing data">
+            <h2>Site Frequency Distribution </h2>
+            <span class="trigger"></span>
+            <div>
+              <p> 
+                Also called allele frequency spectrum, refers to the distribution of the allele 
+                frequencies of a set of loci (typically SNPs) in a population or sample. It is a 
+                histogram which depends on the number of samples used for its calculation and 
+                therefore, it is significant if a high number of samples are used. Sometimes, variant
+                callers use human databases of variants as a control to get an idea about the 
+                expected frequencies. A good plot should be similar to an exponential distribution 
+                like the one shown below:
+              </p>
+              <img src="{{ static('img/SFS.png') }}" alt="SFS" />
+            </div>
+            <svg></svg>
+          </section>
+        {% endif %}
+
+        <section id="Indel" class="wide" data-ifmissing="Missing data">
+          <h2>Indel Distribution</h2>
+          <span class="trigger"></span>
+          <div>
+            <p>
+              This plot allows checking the number of insertions and deletions according to length
+              observed in the VCF. Negative values represent deletions and positive values 
+              correspond to insertions. The x-axis shows the number of bases inserted/deleted and 
+              the y-axis corresponds to the number of variants observed having those amount of 
+              bases inserted/deleted. Usually, more deletions than insertions are observed, and the
+              length of the indels are generally very short (1-5 bases).
+            </p>
+          </div>
+          <svg></svg>
+        </section>
+
+        <section id="quality-dist" class="wide" data-ifmissing="Missing data">
+          <h2>Quality Distribution </h2>
+          <span class="trigger"></span>
+          <div>
+            <p>
+              Variant quality is a measure of confidence in the accuracy of a detected genetic variant, with higher scores indicating greater reliability. In a histogram of variant quality distribution, each bar represents the count of variants within a specific quality score range. This visualization helps assess the overall reliability of the variant calls in a dataset.  QUAL scores above 30 are typically considered high confidence for single nucleotide variants (SNVs), while indels often require scores above 50. In the histogram, a large proportion of variants (>80%) with high QUAL scores (>30) suggests a reliable dataset. However, depending on the variant caller employed, QUAL values may deviate from these expected ranges due to differences in calibration or annotation methods. GATK uses two key metrics to evaluate quality: QUAL, a Phred-scaled probability of a variant being a false positive, and VQSLOD, a log-odds ratio from Variant Quality Score Recalibration (VQSR) that indicates the likelihood of a variant being real based on machine learning models.
+            </p>
+          </div>
+          <svg></svg>
+        </section>
+
+        <section id="depth" class="wide" data-ifmissing="Missing data">
+          <h2>Depth Distribution </h2>
+          <span class="trigger"></span>
+          <div>
+            <p>
+              The average depth of sequencing in a VCF file refers to the mean number of reads covering a given position across all variants. This metric, often denoted as "DP" in the VCF format, is crucial for evaluating data quality and ensuring accurate variant calling. Typical average depth values vary depending on the sequencing type and intended coverage. For whole-genome sequencing (WGS), a depth of 30x is standard, while for whole-exome sequencing (WES), depths of 50x to 100x are often recommended to account for the uneven coverage of exonic regions. Low average depth may indicate poor sequencing quality, insufficient coverage, or issues with library preparation. This can lead to reduced confidence in variant calls. Conversely, extremely high depth may suggest potential PCR duplicates or other artifacts.
+            </p>
+          </div>
+          <svg></svg>
+        </section>
+       
+      </div> 
+      {% if show_table %}
+        <h1 class="sample-table"><span>Per sample statistics table</span> <a download href="./csv"><img src="{{ static('img/download-solid.svg') }}" alt="download" /></a></h1>
+        <div>
+          <section class="wide">
+            <table>
+              <thead>
+                <tr>
+                  <th>sample</th>
+                  <th>average depth</th>
+                  <th>number missing</th>
+                  <th><span>ratio het/hom</span> <button type="button" class="popup-trigger" name="ratio-het-hom">?</button></th>
+                  <th><span>ratio ts/tv</span> <button type="button" class="popup-trigger" name="ratio-ts-tv">?</button></th>
+                  <th><span data-tooltip="Number of insertions in heterozygous sites (0/1, 1/2, etc.).">nInsHets</span></th>
+                  <th><span data-tooltip="Number of deletions in heterozygous sites (0/1, 1/2, etc.).">nDelHets</span></th>
+                  <th><span class="align-right" data-tooltip="Number of insertions in homozygous alternative sites (1/1, 2/2, etc.).">nInsAltHoms</span></th>
+                  <th><span class="align-right" data-tooltip="Number of insertions in homozygous alternative sites (1/1, 2/2, etc.).">nDelAltHoms</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in report.Stats_table %}
+                  <tr>
+                    {% for value in row.values() %}
+                      <td>{{value}}</td>
+                    {% endfor %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </section>
+        </div>
+      {% else %}
+      <h3 class="sample-table-link">
+        <a href="{{url('samples', stable_id = stable_id)}}">Per sample statistics table</a>
+        <a href="{{url('samples', stable_id = stable_id)}}"><img src="{{ static('img/arrow-up-right-from-square-solid.svg') }}" alt="link" /></a>
+        <a download href="./csv"><img src="{{ static('img/download-solid.svg') }}" alt="download" /></a>
+      </h3>
+      {% endif %}
+
+
+    </main>
+
+
+    <!-- Footer works fine -->
+    <footer>
+      <p id="inspired-by">Data generated with <a href="https://samtools.github.io/bcftools/">bcftools</a> stats.</p>
+      <p>This report was generated by the EGA team.</p>
+    </footer>
+  </body>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script>window.jQuery || document.write('<script src="{{ static('js/jquery.min.js') }}">\x3C/script>')</script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js" integrity="sha512-vc58qvvBdrDR4etbxMdlTt4GBQk1qjvyORR2nrsPsFPyrs+/u5c3+1Ct6upOgdZoIl7eq6k3a1UPDSNAQi/32A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script>window.d3 || document.write('<script src="{{ static('js/d3.v5.min.js') }}">\x3C/script>')</script>
+  
+  <script src="{{ static('js/egafile-utils.js') }}"></script>
+  <script src="{{ static('js/egafile-bars2.js') }}"></script>
+
+  <script>
+
+    // Plots
+    window.ega_bars("#quality-dist svg",
+                            JSON.parse("{{ report.QualityDist|escapejs }}".replace(/'/g, '"')),
+                            { 'xAxis': 'Quality',
+                              'yAxis': 'Number of SNPs'
+                            });     
+    window.ega_bars("#depth svg",
+                            JSON.parse("{{ report.Depth|escapejs }}".replace(/'/g, '"')),
+                            { 'xAxis': 'Depth',
+                              'yAxis': 'Number of Variants'
+                            });                                                
+    window.ega_bars("#SFS svg",
+                          JSON.parse("{{ report.FrequencyDist|escapejs }}".replace(/'/g, '"')),
+                          { 'xAxis': 'Allele frequency',
+                            'yAxis': 'Number of SNPs'
+                          });
+    window.ega_bars("#Indel svg",
+                          JSON.parse("{{ report.IndelDistribution|escapejs }}".replace(/'/g, '"')),
+                          { 'xAxis': 'Indel size',
+                            'yAxis': 'Number of Indels'});                           
+      
+  </script>
+</html>
