@@ -1,7 +1,15 @@
 window.ega_curve_mos = function (el, data, opts) {
   const margin = { top: 50, right: 20, bottom: 70, left: 50 };
   const chartContainer = document.querySelector(el).closest(".chart-container");
-const svgContainer = document.querySelector(el).closest(".svg-container");
+  const svgContainer = document.querySelector(el).closest(".svg-container");
+
+  function debounce(cb, delay = 1000) {
+    let timeout;
+    return (...args) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => cb(...args), delay);
+    };
+  }
   function getActiveChartValue(container){
     const checkedArray = container.querySelector("input[type='radio']:checked");
     return checkedArray.value;
@@ -32,11 +40,107 @@ const svgContainer = document.querySelector(el).closest(".svg-container");
     }
     return arr;
   }
+  function addTooltip(x,y,svg,opts){
+    const tooltip = svg.append("g");
+    // Add the event listeners that show or hide the tooltip.
+    const formatX = d3.format('~s')
+    const bisect = d3.bisector(d => d[1]).center;
+
+    svg
+      .on("pointerenter pointermove", pointermoved)
+      .on("pointerleave", pointerleft)
+      .on("touchstart", event => event.preventDefault());
+
+
+    function pointermoved(event) {
+      const i = bisect(data, x.invert(d3.pointer(event)[0]));
+      const cx = x(data[i][1]);
+      const cy = y(data[i][2]);
+      tooltip.style("display", null);
+      tooltip.attr("transform", `translate(${cx},${cy})`);
+
+      const path = tooltip.selectAll("path")
+        .data([,])
+        .join("path")
+          .attr("stroke", "black")
+          .attr("class","graph-tooltip")
+
+      const text = tooltip.selectAll("text")
+        .data([,])
+        .join("text")
+        .call(text => text
+          .selectAll("tspan")
+          .data([opts.title.toLowerCase(),`${formatX(data[i][1])}: ${data[i][2]}`])
+          .join("tspan")
+            .attr("x", 0)
+            .attr("y", (_, i) => `${i * 1.1}em`)
+            .attr("font-weight", (_, i) => i ? null : "bold")
+            .text(d => d));
+
+      // Measure text and decide if it needs to flip
+      const { width: w } = text.node().getBBox();
+      const padding = 20;
+      const flipped = (cx + w + padding + 20) > svg.node().getBoundingClientRect().width;    
+
+      size(text, path, flipped);
+    }
+
+    function pointerleft() {
+      tooltip.style("display", "none");
+    }
+    
+    // Wraps the text with a callout path of the correct size, as measured in the page.
+    function size(text, path, flipped = false) {
+      const { x, y, width: w, height: h } = text.node().getBBox();
+      const paddingX = 15;
+      const offsetY = 12;
+      if (flipped) {
+        text.attr("transform", `translate(${-w - paddingX},${offsetY - h / 2})`);
+        path.attr("d", `M${-5},${-h / 2 - 3} V-5 L0,0 L-5,5 V${h / 2 + 3} H${-w - 2 * paddingX} V${-h / 2 - 3} Z`);
+      } else {
+        text.attr("transform", `translate(${paddingX - x},${offsetY - h / 2})`);
+        path.attr("d", `M5,${-h / 2 - 3} V-5 L0,0 L5,5 V${h / 2 + 3} H${w + 2 * paddingX} V${-h / 2 - 3} Z`);
+      }
+    }
+  }
+  function getResizeObserver(){
+    let chartSize = 0;
+    let loading = false;
+    const svg = d3.select(el).node();    
+
+    const debouncedBuildChart = debounce((newSize) => {
+    chartSize = newSize;
+    svgContainer.classList.remove("loading");
+    loading = false;
+    // console.log("building chart...");
+    buildChart();
+    }, 50);
+
+    const observer = new ResizeObserver(([entry]) => {
+    if (!entry.borderBoxSize) return;
+
+    const newSize = entry.borderBoxSize[0].inlineSize;
+    if (newSize === chartSize) return;
+
+    if (!loading) {
+      const scrollDiv = svgContainer.querySelector("div");
+      svgContainer.classList.add("loading");
+      svg.innerHTML = "";
+      scrollDiv?.remove();
+      loading = true;
+      // console.log("adding loader...");
+    }
+
+    // Update chart size and rebuild after debounce delay
+    debouncedBuildChart(newSize);
+    });
+    return observer;
+  }
   function expandScaleDomain(scale,amount){
     const newDomain = scale.domain();
     if(typeof amount === 'string' && amount.endsWith("px")){
       const amount_px = Number(amount.replace("px",""));
-      const amount_domain = scale.invert(amount_px);
+      const amount_domain = scale.invert(amount_px);      
       newDomain[1]+=amount_domain;
     }else{
       const ticks = scale.ticks();
@@ -45,25 +149,57 @@ const svgContainer = document.querySelector(el).closest(".svg-container");
     }
     scale.domain(newDomain);
   }
-  function buildChart(){
+  function updateChart(event, x) {
+    const dx = event.selection;
+    if (dx) {
+      const [from, to] = [
+        x.invert(dx[0]) > 0 ? x.invert(dx[0]) : 0,
+        x.invert(dx[1]),
+      ];        
+      svgContainer.querySelector("div")?.remove();
+      d3.select(el).node().innerHTML="";
+      
+      buildChart(from,to);
+      isZoomActive = true;
+    }
+  }
+  function resetZoom(){
+    if (isZoomActive) {
+       isZoomActive = false;
+       svgContainer.querySelector("div")?.remove();
+       d3.select(el).node().innerHTML="";
+       buildChart();
+     }
+  }
+  function buildChart(from = 0, to = Infinity){
     const [width,height] = getSVGDimensions();
+    const filteredData =
+      from === 0 && to === Infinity
+        ? data
+        : data.filter((point) => point[1] > from && point[1] < to);
 
     // Declare separators
     const separators = getSeparators();
 
     if(opts.scrollRatio === "auto") opts.scrollRatio = separators.length/4;
-    const totalWidth = width * opts.scrollRatio;    
+    const totalWidth = width * opts.scrollRatio;
+    
     
    // Declare the x (horizontal position) scale.
-	  const x = d3.scaleLinear(d3.extent(data, d => d[1]), [margin.left, totalWidth - margin.right]);
+	  const x = d3.scaleLinear(d3.extent(filteredData, d => d[1]), [margin.left, totalWidth - margin.right]);
     
     // Declare the y (vertical position) scale.
-    const y = d3.scaleLinear([0, d3.max(data, d => d[2])], [height - margin.bottom, margin.top]).nice();
+    const y = d3.scaleLinear([0, d3.max(filteredData, d => d[2])], [height - margin.bottom, margin.top]).nice();
 
     
     //expand scale domain (making extra space in the graph)
-    if(opts.expandX) expandScaleDomain(x,opts.expandX)
-    if(opts.expandY) expandScaleDomain(y,opts.expandY)
+    if(from === 0 && to === Infinity){
+      if(opts.expandX) expandScaleDomain(x,opts.expandX)
+      if(opts.expandY) expandScaleDomain(y,opts.expandY)
+    }else{
+      if(opts.expandXOnZoom) expandScaleDomain(x,opts.expandXOnZoom)
+      if(opts.expandYOnZoom) expandScaleDomain(y,opts.expandYOnZoom)
+    }
     
     // Declare the line generator.
     const line = d3.line()
@@ -110,7 +246,7 @@ const svgContainer = document.querySelector(el).closest(".svg-container");
     // Append a path for the line.
     svg.append("path")
       .attr("class", "plot")
-      .attr('d', line(data));
+      .attr('d', line(filteredData));
 
      // x-axis name
      if(opts.xAxis !== undefined){
@@ -167,112 +303,24 @@ const svgContainer = document.querySelector(el).closest(".svg-container");
     .attr("font-size", "12px")
     .attr("fill", "black");
 
-    // Create the tooltip container.
-    const tooltip = svg.append("g");
-    // Add the event listeners that show or hide the tooltip.
-    const formatX = d3.format('~s')
-    const bisect = d3.bisector(d => d[1]).center;
+    // Add tooltip
+    if(opts.showTooltip)
+      addTooltip(x,y,svg,opts);
+    
+    // Add brush zoom
+    const brush = d3
+      .brushX()
+      .extent([
+        [margin.left, margin.top],
+        [totalWidth - margin.right , height - margin.bottom],
+      ])
+      .on("end", (event) => updateChart(event,x));
 
-    if(opts.showTooltip){
-      svg
-      .on("pointerenter pointermove", pointermoved)
-      .on("pointerleave", pointerleft)
-      .on("touchstart", event => event.preventDefault());
-    }
-
-    function pointermoved(event) {
-      const i = bisect(data, x.invert(d3.pointer(event)[0]));
-      const cx = x(data[i][1]);
-      const cy = y(data[i][2]);
-      tooltip.style("display", null);
-      tooltip.attr("transform", `translate(${cx},${cy})`);
-
-      const path = tooltip.selectAll("path")
-        .data([,])
-        .join("path")
-          .attr("stroke", "black")
-          .attr("class","graph-tooltip")
-
-      const text = tooltip.selectAll("text")
-        .data([,])
-        .join("text")
-        .call(text => text
-          .selectAll("tspan")
-          .data([opts.title.toLowerCase(),`${formatX(data[i][1])}: ${data[i][2]}`])
-          .join("tspan")
-            .attr("x", 0)
-            .attr("y", (_, i) => `${i * 1.1}em`)
-            .attr("font-weight", (_, i) => i ? null : "bold")
-            .text(d => d));
-
-      // Measure text and decide if it needs to flip
-      const { width: w } = text.node().getBBox();
-      const padding = 20;
-      const flipped = (cx + w + padding + 20 - body.node().scrollLeft) > body.node().getBoundingClientRect().width;    
-
-      size(text, path, flipped);
-    }
-
-    function pointerleft() {
-      tooltip.style("display", "none");
-    }
-
-    // Wraps the text with a callout path of the correct size, as measured in the page.
-    function size(text, path, flipped = false) {
-      const { x, y, width: w, height: h } = text.node().getBBox();
-      const paddingX = 15;
-      const offsetY = 12;
-      if (flipped) {
-        text.attr("transform", `translate(${-w - paddingX},${offsetY - h / 2})`);
-        path.attr("d", `M${-5},${-h / 2 - 3} V-5 L0,0 L-5,5 V${h / 2 + 3} H${-w - 2 * paddingX} V${-h / 2 - 3} Z`);
-      } else {
-        text.attr("transform", `translate(${paddingX - x},${offsetY - h / 2})`);
-        path.attr("d", `M5,${-h / 2 - 3} V-5 L0,0 L5,5 V${h / 2 + 3} H${w + 2 * paddingX} V${-h / 2 - 3} Z`);
-      }
-    }
-
-  }
-  function debounce(cb, delay = 1000) {
-   let timeout;
-   return (...args) => {
-     clearTimeout(timeout);
-     timeout = setTimeout(() => cb(...args), delay);
-   };
-  }
-  
-
-  let chartSize = 0;
-  let loading = false;
-  const svg = d3.select(el).node();
-
-  const resizeObserver = new ResizeObserver(([entry]) => {
-  if (!entry.borderBoxSize) return;
-
-  const newSize = entry.borderBoxSize[0].inlineSize;
-  if (newSize === chartSize) return;
-
-  if (!loading) {
-    // Enter loading state immediately
-    const scrollDiv = svgContainer.querySelector("div");
-    svgContainer.classList.add("loading");
-    svg.innerHTML = "";
-    scrollDiv?.remove();
-    loading = true;
-    // console.log("adding loader...");
+    svg.append("g").attr("class", "brush").call(brush);
+    svg.on("dblclick", resetZoom);
   }
 
-  // Update chart size and rebuild after debounce delay
-  debouncedBuildChart(newSize);
-  });
-
-  const debouncedBuildChart = debounce((newSize) => {
-    chartSize = newSize;
-    svgContainer.classList.remove("loading");
-    loading = false;
-    // console.log("building chart...");
-    buildChart();
-  }, 50);
-  
+  const resizeObserver = getResizeObserver();
   resizeObserver.observe(chartContainer);
 }
   
