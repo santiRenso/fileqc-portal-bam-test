@@ -154,7 +154,7 @@ window.ega_curve_mo = function (el, data, opts) {
     const dx = event.selection;
     if (dx) {
       const [from, to] = [
-        x.invert(dx[0]) > 0 ? x.invert(dx[0]) : 0,
+        x.invert(dx[0]) > 0 ? x.invert(dx[0] < 60 && x.domain()[0] === 0 ? 0 : dx[0]) : 0,
         x.invert(dx[1]),
       ];        
       d3.select(el).node().innerHTML="";
@@ -174,7 +174,7 @@ window.ega_curve_mo = function (el, data, opts) {
     const filteredData =
       from === 0 && to === Infinity
         ? data
-        : data.filter((point) => point[1] > from && point[1] < to);
+        : data.filter((point) => point[1] >= from && point[1] < to);
           
     // Declare the x (horizontal position) scale.
     const x = d3.scaleLinear(d3.extent(filteredData, d => d[1]), [margin.left, width - margin.right]);
@@ -196,6 +196,7 @@ window.ega_curve_mo = function (el, data, opts) {
 
     // Declare separators
     const separators = getSeparators(filteredData);
+    
 
     svg
      .attr("width", width)

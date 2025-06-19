@@ -27,7 +27,7 @@ window.ega_curve_mos = function (el, data, opts) {
     }
     return [width,height]
   }
-  function getSeparators(){    
+  function getSeparators(data){    
     const arr = [];
     let current = null;
     let labelsArray = [];
@@ -151,9 +151,9 @@ window.ega_curve_mos = function (el, data, opts) {
   }
   function updateChart(event, x) {
     const dx = event.selection;
-    if (dx) {
+    if (dx) {      
       const [from, to] = [
-        x.invert(dx[0]) > 0 ? x.invert(dx[0]) : 0,
+        x.invert(dx[0]) > 0 ? x.invert(dx[0] < 60 && x.domain()[0] === 0 ? 0 : dx[0]) : 0,
         x.invert(dx[1]),
       ];        
       svgContainer.querySelector("div")?.remove();
@@ -176,10 +176,11 @@ window.ega_curve_mos = function (el, data, opts) {
     const filteredData =
       from === 0 && to === Infinity
         ? data
-        : data.filter((point) => point[1] > from && point[1] < to);
+        : data.filter((point) => point[1] >= from && point[1] < to);
 
     // Declare separators
-    const separators = getSeparators();
+
+    const separators = getSeparators(filteredData);    
 
     if(opts.scrollRatio === "auto") opts.scrollRatio = separators.length/4;
     const totalWidth = width * opts.scrollRatio;
