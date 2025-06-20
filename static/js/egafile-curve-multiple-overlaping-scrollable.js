@@ -2,6 +2,7 @@ window.ega_curve_mos = function (el, data, opts) {
   const margin = { top: 50, right: 20, bottom: 70, left: 50 };
   const chartContainer = document.querySelector(el).closest(".chart-container");
   const svgContainer = document.querySelector(el).closest(".svg-container");
+  let isZoomActive = false;
 
   function debounce(cb, delay = 1000) {
     let timeout;
